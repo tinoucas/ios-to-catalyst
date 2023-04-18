@@ -45,9 +45,9 @@ public enum Transmogrifier {
         let headerData = try! handle.read(upToCount: MemoryLayout<mach_header_64>.stride)!
 
         let header: mach_header_64 = headerData.asStruct()
-        if header.magic != MH_MAGIC_64 || header.cputype != CPU_TYPE_ARM64 {
-            fatalError("The file is not a correct arm64 binary. Try thinning (via lipo) or unarchiving (via ar) first.")
-        }
+        //if header.magic != MH_MAGIC_64 || header.cputype != CPU_TYPE_ARM64 {
+        //    fatalError("The file is not a correct arm64 binary. Try thinning (via lipo) or unarchiving (via ar) first.")
+        //}
 
         let loadCommandsData: [Data] = (0..<header.ncmds).map { _ in
             let loadCommandPeekData = try! handle.peek(upToCount: MemoryLayout<load_command>.stride)
@@ -107,7 +107,7 @@ public enum Transmogrifier {
     private static func replaceVersionMin(_ data: Data, _ offset: UInt32, minos: UInt32, sdk: UInt32) -> Data {
         var command = build_version_command(cmd: UInt32(LC_BUILD_VERSION),
                                             cmdsize: UInt32(MemoryLayout<build_version_command>.stride),
-                                            platform: UInt32(PLATFORM_IOSSIMULATOR),
+                                            platform: UInt32(PLATFORM_MACCATALYST),
                                             minos: minos << 16 | 0 << 8 | 0,
                                             sdk: sdk << 16 | 0 << 8 | 0,
                                             ntools: 0)
@@ -128,7 +128,7 @@ public enum Transmogrifier {
         var new_command : build_version_command = data.asStruct()
 
         new_command.cmd = UInt32(LC_BUILD_VERSION)
-        new_command.platform = UInt32(PLATFORM_IOSSIMULATOR)
+        new_command.platform = UInt32(PLATFORM_MACCATALYST)
         new_command.minos = minos << 16 | 0 << 8 | 0
         new_command.sdk = sdk << 16 | 0 << 8 | 0
 
